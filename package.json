@@ -17,7 +17,8 @@
   ],
   "scripts": {
     "build": "tsc -p tsconfig.json",
-    "prepare": "npm run build"
+    "prepare": "npm run build",
+    "test": "node --experimental-strip-types --test src/print.test.ts"
   },
   "dependencies": {
     "@openai/chatkit-react": "1.6.1"

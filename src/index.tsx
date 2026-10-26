@@ -1,6 +1,7 @@
 import { ChatKit, useChatKit } from "@openai/chatkit-react";
 import type { UseChatKitOptions } from "@openai/chatkit-react";
 import { useEffect, useRef } from "react";
+import { loadPrintableThread, postChatkit, printHtmlDocument, renderPrintDocument } from "./print";
 
 export type HtmlInvocation = { params: { html: string } };
 export type MapInvocation = { params: { geojson: string } };
@@ -69,12 +70,51 @@ export function AssistantPanel({
   // Guards against a fast thread switch resolving out of order and
   // clobbering the panel with a stale response.
   const latestThreadRef = useRef<string | null>(null);
+  const printingRef = useRef(false);
+
+  const printConversation = async () => {
+    const threadId = latestThreadRef.current;
+    if (!threadId) {
+      window.alert("Open a conversation before printing.");
+      return;
+    }
+    if (printingRef.current) return;
+    printingRef.current = true;
+    try {
+      const printable = await loadPrintableThread(threadId, postChatkit(apiUrl));
+      if (printable.blocks.length === 0) {
+        window.alert("This conversation has nothing to print yet.");
+        return;
+      }
+      await printHtmlDocument(
+        renderPrintDocument({
+          title: printable.title,
+          printedAt: new Date(),
+          blocks: printable.blocks,
+        }),
+      );
+    } catch (error) {
+      console.error(error);
+      window.alert("Couldn't load this conversation to print.");
+    } finally {
+      printingRef.current = false;
+    }
+  };
 
   const chatkit = useChatKit({
     api: {
       url: apiUrl,
       domainKey: domainKey,
       uploadStrategy: { type: "two_phase" },
+    },
+    // ChatKit's header icons have no printer. share is the export control.
+    header: {
+      rightAction: {
+        icon: "share",
+        onClick: () => {
+          void printConversation();
+        },
+      },
     },
     composer: {
       // Keep in sync with ALLOWED_MIME_TYPES / MAX_ATTACHMENT_BYTES in

@@ -21,7 +21,8 @@ HTML or map content. Optional `onShowMap` handles `show_map`. Optional `chatThem
 overrides the widget theme. Layout and Tailwind styles stay in each host app.
 
 Includes attachment uploads, screenshot tool responses, HTML restoration when
-switching threads, and generated HTML error forwarding. Attachment limits must
+switching threads, and generated HTML error forwarding. The share icon at the
+top right of the header prints the open conversation. Attachment limits must
 stay aligned with backend/app/attachments.py in traccar-chatkit.
 
 ## Install and update
